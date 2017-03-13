@@ -1,2 +1,2 @@
 # Description
-This is a commandline / scriptable interafce to the TI CC2538/CC26xx Serial Bootloader
+This is a command line and scriptable interface to the TI CC2538/CC26xx Serial Bootloader.
