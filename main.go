@@ -16,7 +16,7 @@ import (
 	"os"
 
 	"github.com/jacobsa/go-serial/serial"
-	"github.com/linux4life798/ccboot"
+	"github.com/openchirp/ccboot"
 )
 
 const (
