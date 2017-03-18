@@ -15,8 +15,15 @@ import (
 
 	"os"
 
+	"strconv"
+
 	"github.com/jacobsa/go-serial/serial"
 	"github.com/openchirp/ccboot"
+)
+
+const (
+	// This is the default speed that the SmartRf Flash Programmer 2 uses
+	SmartRFFlashProgrammer2Speed = 460800
 )
 
 const (
@@ -49,7 +56,7 @@ func setupFlags() {
 		flag.PrintDefaults()
 	}
 	flag.BoolVar(&verbose, "verbose", false, "Toggles the verbose setting")
-	flag.UintVar(&portSpeed, "speed", 115200, "The serial baud rate to use")
+	flag.UintVar(&portSpeed, "speed", SmartRFFlashProgrammer2Speed, "The serial baud rate to use")
 }
 
 func main() {
@@ -61,13 +68,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	portname := flag.Args()[0]
-	cmd := flag.Args()[1]
+	args := flag.Args()[:]
+	portName := args[0]
+	cmd := args[1]
+
+	args = args[2:]
 
 	// Set up options.
 	options := serial.OpenOptions{
-		PortName:              portname,
-		BaudRate:              115200,
+		PortName:              portName,
+		BaudRate:              portSpeed,
 		DataBits:              8,
 		StopBits:              1,
 		MinimumReadSize:       1,
@@ -108,6 +118,29 @@ func main() {
 			os.Exit(1)
 		}
 		log.Println("Ping success")
+	case "download":
+		// Send Download command
+		log.Println("Downloading")
+		if len(args) < 2 {
+			log.Fatalf("Error - does not specify address and size")
+		}
+		addr, err := strconv.ParseUint(args[0], 16, 32)
+		if err != nil {
+			log.Printf("Error parsing address: %v\n", err)
+			os.Exit(1)
+		}
+		size, err := strconv.ParseUint(args[1], 10, 32)
+		if err != nil {
+			log.Printf("Error parsing size: %v\n", err)
+			os.Exit(1)
+		}
+		log.Printf("Sending Download command with 0x%x and %d\n", uint32(addr), uint32(size))
+		err = d.Download(uint32(addr), uint32(size))
+		if err != nil {
+			log.Printf("Error sending download todevice: %s\n", err.Error())
+			os.Exit(1)
+		}
+		log.Println("Download success")
 	case "getstatus":
 		// Get Status
 		log.Println("Getting status")
@@ -117,7 +150,7 @@ func main() {
 			log.Printf("# Error - %s\n", err.Error())
 			os.Exit(1)
 		}
-		fmt.Println(status.GetString())
+		fmt.Println(status)
 	case "getchipid":
 		// Get Chip ID
 		log.Println("Getting chip ID")
@@ -132,7 +165,7 @@ func main() {
 		log.Println("Bank erasing")
 		err = d.BankErase()
 		if err != nil {
-			log.Printf("Error bank erasing device: %s\n", err.Error())
+			log.Printf("Error - Could not bank erase device: %s\n", err.Error())
 			os.Exit(1)
 		}
 		log.Println("Bank erase success")
@@ -141,10 +174,64 @@ func main() {
 		log.Println("Resetting device")
 		err = d.Reset()
 		if err != nil {
-			log.Printf("Error resetting chip: %s\n", err.Error())
+			log.Printf("Error - Could not reset chip: %s\n", err.Error())
 			os.Exit(1)
 		}
 		log.Println("Device reset")
+	case "setccfg":
+		// Set CCFGs
+		if (len(args) < 2) || (len(args)%2 != 0) {
+			log.Fatalf("Error - Parameters for CCFG should specify <CCFG_FIELD_ID> followed by <value>")
+		}
+
+		for i := 0; i < len(args)/2; i++ {
+			fieldid, err := ccboot.ParseCCFGFieldID(args[i*2])
+			if err != nil {
+				log.Fatalf("Error - Could not parse Field ID %s\n", args[i*2])
+			}
+			// base=0 means it will try to auto detect base
+			fieldvalue, err := strconv.ParseUint(args[i*2+1], 0, 32)
+			if err != nil {
+				log.Fatalf("Error - Could not parse Field Value %s\n", args[i*2+1])
+			}
+			log.Printf("Setting CCFG %v to 0x%X (%d)", fieldid, uint32(fieldvalue), uint32(fieldvalue))
+			err = d.SetCCFG(fieldid, uint32(fieldvalue))
+			if err != nil {
+				log.Fatalf("Error - Could not set CCFG %v to 0x%X: %v\n", fieldid, uint32(fieldvalue), err)
+			}
+		}
+		log.Println("Device CCFG set")
+	case "flash":
+		log.Println("Flashing device")
+		if len(args) < 1 {
+			log.Fatalf("Error - does not specify ELF binary to flash")
+		}
+		if err := flash(d, args[0]); err != nil {
+			log.Fatalf("Error - Failed to flash: %v\n", err)
+		}
+		fmt.Println("SUCCESS")
+	case "verify":
+		rcount := uint64(0)
+		log.Println("Verifying device image")
+		if len(args) < 1 || len(args) > 2 {
+			log.Fatalf("Error - does not specify ELF binary to flash")
+		}
+		// TODO: Fix rcount > 0
+		// if len(args) == 2 {
+		// 	rcount, err = strconv.ParseUint(args[1], 0, 32)
+		// 	if err != nil {
+		// 		log.Fatalf("Error - Failed to parse read cycle count %s: %v\n", args[1], err)
+		// 	}
+		// }
+		pass, err := verify(d, args[0], uint32(rcount))
+		if err != nil {
+			log.Fatalf("Error - Failed to verify: %v\n", err)
+		}
+		if pass {
+			fmt.Println("SUCCESS")
+		} else {
+			fmt.Println("FAILURE")
+		}
 	}
 
 	log.Printf("Exiting\n")
