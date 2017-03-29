@@ -114,6 +114,11 @@ func main() {
 		}
 		log.Println("Synchronization success")
 	case "ping":
+		log.Println("Synchronizing")
+		if err = d.Sync(); err != nil {
+			log.Fatalf("Error synchronizing device: %v\n", err)
+		}
+		log.Println("Synchronization success")
 		// Ping Device Bootloader
 		log.Println("Pinging")
 		err = d.Ping()
@@ -151,6 +156,11 @@ func main() {
 		}
 		fmt.Println(status)
 	case "getchipid":
+		log.Println("Synchronizing")
+		if err = d.Sync(); err != nil {
+			log.Fatalf("Error synchronizing device: %v\n", err)
+		}
+		log.Println("Synchronization success")
 		// Get Chip ID
 		log.Println("Getting chip ID")
 		id, err := d.GetChipID()
@@ -159,6 +169,10 @@ func main() {
 		}
 		fmt.Printf("0x%.8X\n", id)
 	case "bankerase":
+		log.Println("Synchronizing")
+		if err = d.Sync(); err != nil {
+			log.Fatalf("Error synchronizing device: %v\n", err)
+		}
 		// Bank Erase
 		log.Println("Bank erasing")
 		err = d.BankErase()
@@ -167,6 +181,10 @@ func main() {
 		}
 		log.Println("Bank erase success")
 	case "reset":
+		log.Println("Synchronizing")
+		if err = d.Sync(); err != nil {
+			log.Fatalf("Error synchronizing device: %v\n", err)
+		}
 		// Reset Device
 		log.Println("Resetting device")
 		err = d.Reset()
@@ -181,6 +199,10 @@ func main() {
 	 * So, this setccfg can only mask bits that were previously a 1.
 	 */
 	case "setccfg":
+		log.Println("Synchronizing")
+		if err = d.Sync(); err != nil {
+			log.Fatalf("Error synchronizing device: %v\n", err)
+		}
 		// Set CCFGs
 		if (len(args) < 2) || (len(args)%2 != 0) {
 			log.Fatalf("Error - Parameters for CCFG should specify <CCFG_FIELD_ID> followed by <value>")
@@ -204,6 +226,10 @@ func main() {
 		}
 		log.Println("Device CCFG set")
 	case "flash":
+		log.Println("Synchronizing")
+		if err = d.Sync(); err != nil {
+			log.Fatalf("Error synchronizing device: %v\n", err)
+		}
 		log.Println("Flashing device")
 		if len(args) != 1 {
 			fmt.Println("FAILURE")
@@ -215,6 +241,10 @@ func main() {
 		}
 		fmt.Println("SUCCESS")
 	case "verify":
+		log.Println("Synchronizing")
+		if err = d.Sync(); err != nil {
+			log.Fatalf("Error synchronizing device: %v\n", err)
+		}
 		rcount := uint64(0)
 		log.Println("Verifying device image")
 		if len(args) != 1 {
