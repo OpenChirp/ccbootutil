@@ -10,6 +10,8 @@ import (
 	"hash/crc32"
 	"io/ioutil"
 
+	"os"
+
 	"github.com/openchirp/ccboot"
 )
 
@@ -190,18 +192,19 @@ func flash(d *ccboot.Device, filepath string) error {
 		}
 		log.Printf("Status: %v\n", status)
 
+		log.Printf("Sending Data Blocks - Start")
 		blockbuf := make([]byte, ccboot.SendDataMaxSize)
 		for n, _ := bytestream.Read(blockbuf); n > 0; n, _ = bytestream.Read(blockbuf) {
 			// time.Sleep(time.Second * time.Duration(2))
 			block := blockbuf[0:n]
 
 			// log.Printf("Sending SendData: [%d]=%s\n", len(block), hex.EncodeToString(block))
-			log.Printf("Sending SendData: [%d]=%s\n", len(block), "")
+			// log.Printf("Sending SendData: [%d]=%s\n", len(block), "")
 			if err := d.SendData(block); err != nil {
 				// communication error
 				return err
 			}
-			log.Printf("Sending GetStatus\n")
+			// log.Printf("Sending GetStatus\n")
 			status, err = d.GetStatus()
 			if err != nil {
 				// communication error
@@ -211,26 +214,19 @@ func flash(d *ccboot.Device, filepath string) error {
 				fmt.Printf("Error sending data: %v\n", status)
 				return ErrSendData
 			}
-			log.Printf("Status: %v\n", status)
+			// log.Printf("Status: %v\n", status)
+
+			// print dot for each block successfully flashed
+			if verbose {
+				fmt.Fprint(os.Stderr, ".")
+			}
 		}
+		// clean up flashing dots
+		if verbose {
+			fmt.Fprintln(os.Stderr)
+		}
+		log.Printf("Sending Data Blocks - Complete")
 
-	}
-
-	pass, err := verify(d, filepath, 0)
-	if err != nil {
-		return err
-	}
-	if !pass {
-		log.Println("FAILED CRC32 Verification")
-	} else {
-		log.Println("Passed CRC32 Verification")
-	}
-
-	log.Println("Resetting Device!")
-	err = d.Reset()
-	if err != nil {
-		// communication error
-		return err
 	}
 	log.Println("Flash done!")
 	return nil
