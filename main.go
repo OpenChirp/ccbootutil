@@ -34,14 +34,14 @@ const (
 var commands = []string{
 	"sync",
 	"ping",
-	"download",
+	"download <address_with_0x_prefix> <size>",
 	"getstatus",
 	"getchipid",
 	"bankerase",
 	"reset",
-	"setccfg",
-	"flash",
-	"verify",
+	"setccfg <field_id1> <field_value1> [<field_id2> <field_value2> [...]]",
+	"flash <program.elf>",
+	"verify <program.elf>",
 	"prgm <program.elf> -- sync, erase, flash, verify, and then reset",
 }
 
@@ -174,6 +174,12 @@ func main() {
 			log.Fatalf("Error - Could not reset chip: %v\n", err)
 		}
 		log.Println("Device reset")
+
+	/*
+	 * CCFG is just another part of the flash space.
+	 * Note that flash bits can only be zeroed out without the help of an erase cycle.
+	 * So, this setccfg can only mask bits that were previously a 1.
+	 */
 	case "setccfg":
 		// Set CCFGs
 		if (len(args) < 2) || (len(args)%2 != 0) {
