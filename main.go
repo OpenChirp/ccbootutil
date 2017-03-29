@@ -34,10 +34,14 @@ const (
 var commands = []string{
 	"sync",
 	"ping",
+	"download",
 	"getstatus",
 	"getchipid",
 	"bankerase",
 	"reset",
+	"setccfg",
+	"flash",
+	"verify",
 }
 
 var verbose bool
@@ -105,8 +109,7 @@ func main() {
 		// Synchronize
 		log.Println("Synchronizing")
 		if err = d.Sync(); err != nil {
-			log.Printf("Error synchronizing device: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("Error synchronizing device: %v\n", err)
 		}
 		log.Println("Synchronization success")
 	case "ping":
@@ -114,8 +117,7 @@ func main() {
 		log.Println("Pinging")
 		err = d.Ping()
 		if err != nil {
-			log.Printf("Error pinging device: %s\n", err.Error())
-			os.Exit(1)
+			log.Fatalf("Error pinging device: %v\n", err)
 		}
 		log.Println("Ping success")
 	case "download":
@@ -126,19 +128,16 @@ func main() {
 		}
 		addr, err := strconv.ParseUint(args[0], 16, 32)
 		if err != nil {
-			log.Printf("Error parsing address: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("Error parsing address: %v\n", err)
 		}
 		size, err := strconv.ParseUint(args[1], 10, 32)
 		if err != nil {
-			log.Printf("Error parsing size: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("Error parsing size: %v\n", err)
 		}
 		log.Printf("Sending Download command with 0x%x and %d\n", uint32(addr), uint32(size))
 		err = d.Download(uint32(addr), uint32(size))
 		if err != nil {
-			log.Printf("Error sending download todevice: %s\n", err.Error())
-			os.Exit(1)
+			log.Fatalf("Error sending download todevice: %v\n", err)
 		}
 		log.Println("Download success")
 	case "getstatus":
@@ -147,8 +146,7 @@ func main() {
 		status, err := d.GetStatus()
 		if err != nil {
 			fmt.Println() // maintain parsibility
-			log.Printf("# Error - %s\n", err.Error())
-			os.Exit(1)
+			log.Fatalf("# Error - %v\n", err)
 		}
 		fmt.Println(status)
 	case "getchipid":
@@ -156,8 +154,7 @@ func main() {
 		log.Println("Getting chip ID")
 		id, err := d.GetChipID()
 		if err != nil {
-			log.Printf("Error reading chip id: %s\n", err.Error())
-			os.Exit(1)
+			log.Fatalf("Error reading chip id: %v\n", err)
 		}
 		fmt.Printf("0x%.8X\n", id)
 	case "bankerase":
@@ -165,8 +162,7 @@ func main() {
 		log.Println("Bank erasing")
 		err = d.BankErase()
 		if err != nil {
-			log.Printf("Error - Could not bank erase device: %s\n", err.Error())
-			os.Exit(1)
+			log.Fatalf("Error - Could not bank erase device: %v\n", err)
 		}
 		log.Println("Bank erase success")
 	case "reset":
@@ -174,8 +170,7 @@ func main() {
 		log.Println("Resetting device")
 		err = d.Reset()
 		if err != nil {
-			log.Printf("Error - Could not reset chip: %s\n", err.Error())
-			os.Exit(1)
+			log.Fatalf("Error - Could not reset chip: %v\n", err)
 		}
 		log.Println("Device reset")
 	case "setccfg":
@@ -203,18 +198,21 @@ func main() {
 		log.Println("Device CCFG set")
 	case "flash":
 		log.Println("Flashing device")
-		if len(args) < 1 {
-			log.Fatalf("Error - does not specify ELF binary to flash")
+		if len(args) != 1 {
+			fmt.Println("FAILURE")
+			log.Fatalf("Error - No ELF binary specified")
 		}
 		if err := flash(d, args[0]); err != nil {
+			fmt.Println("FAILURE")
 			log.Fatalf("Error - Failed to flash: %v\n", err)
 		}
 		fmt.Println("SUCCESS")
 	case "verify":
 		rcount := uint64(0)
 		log.Println("Verifying device image")
-		if len(args) < 1 || len(args) > 2 {
-			log.Fatalf("Error - does not specify ELF binary to flash")
+		if len(args) != 1 {
+			fmt.Println("FAILURE")
+			log.Fatalf("Error - No ELF binary specified")
 		}
 		// TODO: Fix rcount > 0
 		// if len(args) == 2 {
@@ -225,6 +223,7 @@ func main() {
 		// }
 		pass, err := verify(d, args[0], uint32(rcount))
 		if err != nil {
+			fmt.Println("FAILURE")
 			log.Fatalf("Error - Failed to verify: %v\n", err)
 		}
 		if pass {
@@ -232,6 +231,8 @@ func main() {
 		} else {
 			fmt.Println("FAILURE")
 		}
+	default:
+		log.Fatalf("Error - Invalid command given")
 	}
 
 	log.Printf("Exiting\n")

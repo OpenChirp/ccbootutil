@@ -148,18 +148,19 @@ func flash(d *ccboot.Device, filepath string) error {
 		return ErrDownload
 	}
 
-	fmt.Println("# Program Regions #")
-	for _, p := range file.Progs {
-		fmt.Printf("0x%X (%d) aligned %d: %v\n", p.Paddr, p.Memsz, p.Align, p)
-	}
-	fmt.Println()
+	// Print out a useful table of all regions
+	// fmt.Println("# Program Regions #")
+	// for _, p := range file.Progs {
+	// 	fmt.Printf("0x%X (%d) aligned %d: %v\n", p.Paddr, p.Memsz, p.Align, p)
+	// }
+	// fmt.Println()
 
 	for _, p := range file.Progs {
 		addr := uint32(p.Paddr)
 		size := uint32(p.Memsz)
 		bytestream := p.Open()
 
-		log.Printf("Looking at prgm at 0x%X (%d): %v\n", p.Paddr, p.Memsz, p)
+		log.Printf("Flashing region at 0x%X of size %d and alignment %d: %v\n", p.Paddr, p.Memsz, p.Align, *p)
 
 		if p.Paddr > 0x10000000 {
 			log.Printf("Skipping - Region starts after flash area")
@@ -250,18 +251,12 @@ func verify(d *ccboot.Device, filepath string, rcount uint32) (bool, error) {
 	// }
 	// log.Println(hex.EncodeToString(buf))
 
-	fmt.Println("# Program Regions #")
-	for _, p := range file.Progs {
-		fmt.Printf("0x%X (%d) aligned %d: %v\n", p.Paddr, p.Memsz, p.Align, p)
-	}
-	fmt.Println()
-
 	for _, p := range file.Progs {
 		addr := uint32(p.Paddr)
 		size := uint32(p.Memsz)
 		bytestream := p.Open()
 
-		log.Printf("Looking at prgm at 0x%X (%d): %v\n", p.Paddr, p.Memsz, p)
+		log.Printf("Checking region at 0x%X of size %d and alignment %d: %v\n", p.Paddr, p.Memsz, p.Align, *p)
 
 		if p.Paddr > 0x10000000 {
 			log.Printf("Skipping - Region starts after flash area")
