@@ -3,7 +3,7 @@ This is a command line and scriptable interface to the TI CC2538/CC26xx Serial B
 
 # Example Full Programming and Reset
 1. Plug in CC2538/CC26xx device with bootloader triggered. Say it enumerates as /dev/ttyUSB0.
-2. Open a terminal in a Code Composer Studio (CCS) project's Debug directory
+2. Open a terminal in a Code Composer Studio (CCS) project's __Debug__ directory
 3. Run `ccbootutil -verbose /dev/ttyUSB0 prgm SOME_PROJECT_NAME.out`
 
 Note: CCS generates the .out ELF file after a successful build of the Debug target.
