@@ -42,6 +42,7 @@ var commands = []string{
 	"setccfg",
 	"flash",
 	"verify",
+	"prgm <program.elf> -- sync, erase, flash, verify, and then reset",
 }
 
 var verbose bool
@@ -231,6 +232,49 @@ func main() {
 		} else {
 			fmt.Println("FAILURE")
 		}
+	case "program":
+		fallthrough
+	case "prgm":
+		log.Println("Programming device")
+		// Ensure required ELF file argument
+		if len(args) != 1 {
+			fmt.Println("FAILURE")
+			log.Fatalf("Error - No ELF binary specified")
+		}
+		// Synchronize
+		log.Println("Synchronizing")
+		if err = d.Sync(); err != nil {
+			fmt.Println("FAILURE")
+			log.Fatalf("Error synchronizing device: %v\n", err)
+		}
+		log.Println("Synchronization success")
+		// Flash
+		log.Println("Flashing device")
+		if err := flash(d, args[0]); err != nil {
+			fmt.Println("FAILURE")
+			log.Fatalf("Error - Failed to flash: %v\n", err)
+		}
+		// Verify
+		log.Println("Verifying device image")
+		rcount := uint64(0)
+		pass, err := verify(d, args[0], uint32(rcount))
+		if err != nil {
+			fmt.Println("FAILURE")
+			log.Fatalf("Error - Failed to verify: %v\n", err)
+		}
+		if !pass {
+			fmt.Println("FAILURE")
+			os.Exit(1)
+		}
+		// Reset Device
+		log.Println("Resetting device")
+		err = d.Reset()
+		if err != nil {
+			fmt.Println("FAILURE")
+			log.Fatalf("Error - Could not reset chip: %v\n", err)
+		}
+		log.Println("Device reset")
+		fmt.Println("SUCCESS")
 	default:
 		log.Fatalf("Error - Invalid command given")
 	}
