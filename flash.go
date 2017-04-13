@@ -1,3 +1,5 @@
+// This file holds the second order functions
+
 package main
 
 import (
@@ -17,107 +19,6 @@ import (
 
 var ErrDownload = errors.New("Error sending download command")
 var ErrSendData = errors.New("Error sending senddata command")
-
-// func flashPaged(d *ccboot.Device, filepath string) error {
-// 	log.Printf("Parsing %s\n", filepath)
-// 	file, err := elf.Open(filepath)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	defer file.Close()
-
-// 	log.Printf("Mass erasing chip\n")
-// 	if err := d.BankErase(); err != nil {
-// 		// communication error
-// 		return err
-// 	}
-// 	log.Printf("Sending GetStatus\n")
-// 	status, err := d.GetStatus()
-// 	if err != nil {
-// 		// communication error
-// 		return err
-// 	}
-// 	if status != ccboot.COMMAND_RET_SUCCESS {
-// 		fmt.Printf("Error sending bank erase: %v\n", status)
-// 		return ErrDownload
-// 	}
-
-// 	fmt.Println("# Program Regions #")
-// 	for _, p := range file.Progs {
-// 		fmt.Printf("0x%X (%d) aligned %d: %v\n", p.Paddr, p.Memsz, p.Align, p)
-// 	}
-// 	fmt.Println()
-
-// 	for _, p := range file.Progs {
-// 		addr := uint32(p.Paddr)
-// 		size := uint32(p.Memsz)
-// 		bytestream := p.Open()
-
-// 		if addr == 0 {
-// 			continue
-// 		}
-
-// 		log.Printf("Looking at prgm at 0x%X (%d): %v\n", p.Paddr, p.Memsz, p)
-
-// 		alignedsize := uint32((1024 * p.Align) * ((uint64(size) / (1024 * p.Align)) + 1))
-// 		log.Printf("Sending Download for address 0x%X for %d bytes\n", addr, alignedsize)
-// 		if err := d.Download(addr, alignedsize); err != nil {
-// 			// communication error
-// 			return err
-// 		}
-// 		log.Printf("Sending GetStatus\n")
-// 		status, err := d.GetStatus()
-// 		if err != nil {
-// 			// communication error
-// 			return err
-// 		}
-// 		if status != ccboot.COMMAND_RET_SUCCESS {
-// 			fmt.Printf("Error sending download address and size: %v\n", status)
-// 			return ErrDownload
-// 		}
-// 		log.Printf("Status: %v\n", status)
-
-// 		block := make([]byte, 1024*p.Align)
-// 		for n, _ := bytestream.Read(block); n > 0; n, _ = bytestream.Read(block) {
-// 			// time.Sleep(time.Second * time.Duration(2))
-
-// 			segsize := 128
-
-// 			for offset := 0; offset < len(block); offset += segsize {
-// 				log.Printf("Sending SendData for bytes %d to %d\n", offset, offset+segsize-1)
-// 				if err := d.SendData(block[offset : offset+segsize]); err != nil {
-// 					// communication error
-// 					return err
-// 				}
-// 				log.Printf("Sending GetStatus\n")
-// 				status, err = d.GetStatus()
-// 				if err != nil {
-// 					// communication error
-// 					return err
-// 				}
-// 				if status != ccboot.COMMAND_RET_SUCCESS {
-// 					fmt.Printf("Error sending data: %v\n", status)
-// 					return ErrSendData
-// 				}
-// 				log.Printf("Status: %v\n", status)
-// 			}
-
-// 			// zero out block for next use
-// 			for i, _ := range block {
-// 				block[i] = 0
-// 			}
-// 		}
-
-// 	}
-// 	log.Println("Resetting Device!")
-// 	err = d.Reset()
-// 	if err != nil {
-// 		// communication error
-// 		return err
-// 	}
-// 	log.Println("Flash done!")
-// 	return nil
-// }
 
 func flash(d *ccboot.Device, filepath string) error {
 	log.Printf("Parsing %s\n", filepath)
@@ -232,6 +133,7 @@ func flash(d *ccboot.Device, filepath string) error {
 	return nil
 }
 
+// TODO: Fix rcount greater than 0 case.
 func verify(d *ccboot.Device, filepath string, rcount uint32) (bool, error) {
 	log.Printf("Parsing %s\n", filepath)
 	file, err := elf.Open(filepath)
