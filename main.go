@@ -127,7 +127,8 @@ func main() {
 		if len(args) < 2 {
 			log.Fatalf("Error - does not specify address and size")
 		}
-		addr, err := strconv.ParseUint(args[0], 16, 32)
+		// 0 as base allows inputting 0x or decimal value
+		addr, err := strconv.ParseUint(args[0], 0, 32)
 		if err != nil {
 			log.Fatalf("Error parsing address: %v\n", err)
 		}
