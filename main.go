@@ -38,6 +38,7 @@ var commands = []string{
 	"getstatus",
 	"getchipid",
 	"bankerase",
+	"memoryread <address_with_0x_prefix> <access_type_as_8_or_32> <count>",
 	"reset",
 	"setccfg <field_id1> <field_value1> [<field_id2> <field_value2> [...]]",
 	"flash <program.elf>",
@@ -167,6 +168,47 @@ func main() {
 			log.Fatalf("Error - Could not bank erase device: %v\n", err)
 		}
 		log.Println("Bank erase success")
+	case "memoryread":
+		// Memory Read
+		log.Println("Memory read")
+		if len(args) != 3 {
+			log.Fatalf("Error - Parameters for memory read should be <address_with_0x_prefix> <access_type_as_8_or_32> <count>")
+		}
+		// 0 as base allows inputting 0x or decimal value
+		addr, err := strconv.ParseUint(args[0], 0, 32)
+		if err != nil {
+			log.Fatalf("Error parsing address: %v\n", err)
+		}
+		atype, err := strconv.ParseUint(args[1], 10, 8)
+		if err != nil {
+			log.Fatalf("Error parsing access type: %v\n", err)
+		}
+		typ := ccboot.ReadWriteType8Bit
+		if atype == 8 {
+			typ = ccboot.ReadWriteType8Bit
+		} else if atype == 32 {
+			typ = ccboot.ReadWriteType32Bit
+		} else {
+			log.Fatalf("Invalid access type \"%d\". Must be 8 or 32.\n", atype)
+		}
+		count, err := strconv.ParseUint(args[2], 10, 8)
+		if err != nil {
+			log.Fatalf("Error parsing count: %v\n", err)
+		}
+		log.Printf("Reading %d %v word(s) from address 0x%X\n", count, typ, uint32(addr))
+		data, err := d.MemoryRead(uint32(addr), typ, uint8(count))
+		if err != nil {
+			log.Fatalf("Error - Could not read memory: %v\n", err)
+		}
+		log.Println("Memory read success")
+		n, err := os.Stdout.Write(data)
+		if err != nil {
+			log.Fatalf("Error writing data to stdout: %v\n", err)
+		}
+		if n != len(data) {
+			log.Fatalf("Error - Size of data received was not fully written to stdout\n")
+		}
+		log.Println("Memory stdout dump success")
 	case "reset":
 		// Reset Device
 		log.Println("Resetting device")
