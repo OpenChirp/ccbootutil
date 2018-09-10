@@ -290,13 +290,21 @@ func main() {
 			fmt.Println("FAILURE")
 			log.Fatalf("Error - No ELF binary specified")
 		}
-		// Synchronize
-		log.Println("Synchronizing")
-		if err = d.Sync(); err != nil {
-			fmt.Println("FAILURE")
-			log.Fatalf("Error synchronizing device: %v\n", err)
+
+		// Check for active sync first
+		log.Println("Ping")
+		if err = d.Ping(); err != nil {
+			// Must need to Synchronize
+			log.Println("Falling back to Synchronizing")
+			if err = d.Sync(); err != nil {
+				fmt.Println("FAILURE")
+				log.Fatalf("Error synchronizing device: %v\n", err)
+			}
+			log.Println("Synchronization success")
+		} else {
+			log.Println("Ping successful")
 		}
-		log.Println("Synchronization success")
+
 		// Flash
 		log.Println("Flashing device")
 		if err := flash(d, args[0]); err != nil {
