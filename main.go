@@ -28,7 +28,7 @@ const (
 
 const (
 	// timeout in ms
-	readTimeout = 1000
+	readTimeout = 500
 )
 
 var commands = []string{
@@ -86,7 +86,7 @@ func main() {
 		BaudRate:              portSpeed,
 		DataBits:              8,
 		StopBits:              1,
-		MinimumReadSize:       1,
+		MinimumReadSize:       0,
 		InterCharacterTimeout: readTimeout,
 	}
 
