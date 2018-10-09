@@ -11,7 +11,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"os"
 
@@ -90,9 +90,8 @@ func main() {
 		InterCharacterTimeout: readTimeout,
 	}
 
-	log.SetOutput(ioutil.Discard)
-	if verbose {
-		log.SetOutput(os.Stderr)
+	if !verbose {
+		log.SetLevel(log.ErrorLevel)
 	}
 
 	// Open the port.
