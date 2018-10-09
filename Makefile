@@ -20,24 +20,24 @@ BUILD_LINE=GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $@ $(SOURCES)
 # Build binary for all platforms
 all: $(addprefix $(BUILDS)/, ccbootutil ccbootutil.osx ccbootutil.exe)
 
-$(BUILDS)/ccbootutil: $(SOURCES)
-$(BUILDS)/ccbootutil: GOOS=linux GOARCH=amd64
+$(BUILDS)/ccbootutil: GOOS=linux
+$(BUILDS)/ccbootutil: GOARCH=amd64
 $(BUILDS)/ccbootutil: BINNAME=ccbootutil
-$(BUILDS)/ccbootutil:
+$(BUILDS)/ccbootutil: $(SOURCES) Makefile
 	$(MKDIR_LINE)
 	$(BUILD_LINE)
 
-$(BUILDS)/ccbootutil.osx: $(SOURCES)
-$(BUILDS)/ccbootutil.osx: GOOS=darwin GOARCH=amd64
+$(BUILDS)/ccbootutil.osx: GOOS=darwin
+$(BUILDS)/ccbootutil.osx: GOARCH=amd64
 $(BUILDS)/ccbootutil.osx: BINNAME=ccbootutil.osx
-$(BUILDS)/ccbootutil.osx:
+$(BUILDS)/ccbootutil.osx: $(SOURCES) Makefile
 	$(MKDIR_LINE)
 	$(BUILD_LINE)
 
-$(BUILDS)/ccbootutil.exe: $(SOURCES)
-$(BUILDS)/ccbootutil.exe: GOOS=windows GOARCH=386
+$(BUILDS)/ccbootutil.exe: GOOS=windows
+$(BUILDS)/ccbootutil.exe: GOARCH=386
 $(BUILDS)/ccbootutil.exe: BINNAME=ccbootutil.exe
-$(BUILDS)/ccbootutil.exe:
+$(BUILDS)/ccbootutil.exe: $(SOURCES) Makefile
 	$(MKDIR_LINE)
 	$(BUILD_LINE)
 
