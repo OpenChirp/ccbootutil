@@ -97,7 +97,7 @@ func main() {
 	}
 
 	// Open the port.
-	log.Println("Opening Serial")
+	log.WithField("dev", portName).WithField("speed", portSpeed).Println("Opening Serial")
 	port, err := serial.Open(options)
 	if err != nil {
 		log.Fatalf("Failed to open serial port: %v", err)
