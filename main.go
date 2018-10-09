@@ -92,6 +92,7 @@ func main() {
 		InterCharacterTimeout: readTimeout,
 	}
 
+	log.SetOutput(os.Stderr)
 	if !verbose {
 		log.SetLevel(log.ErrorLevel)
 	}
