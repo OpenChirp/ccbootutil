@@ -341,14 +341,14 @@ func main() {
 			for {
 				// Will loop because of read timeout
 				if _, err := io.Copy(os.Stdout, port); err != nil {
-					logitem.Error("Encountered error: ", err)
+					logitem.Fatal("Encountered error: ", err)
 				}
 			}
 		}()
 		go func() {
 			logitem := log.WithField("copy direction", "to dev")
 			if _, err := io.Copy(port, os.Stdin); err != nil {
-				logitem.Error("Encountered error: ", err)
+				logitem.Fatal("Encountered error: ", err)
 			}
 			// If user sends EOF (CTRL-D)
 			logitem.Println("Closed stdin")
