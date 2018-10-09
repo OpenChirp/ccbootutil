@@ -10,7 +10,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"os/signal"
+
 	log "github.com/sirupsen/logrus"
 
 	"os"
@@ -331,6 +333,30 @@ func main() {
 		}
 		log.Println("Device reset")
 		fmt.Println("SUCCESS")
+	case "console":
+		log.Println("Opening console to device")
+		go func() {
+			logitem := log.WithField("copy direction", "from dev")
+			for {
+				// Will loop because of read timeout
+				if _, err := io.Copy(os.Stdout, port); err != nil {
+					logitem.Error("Encountered error: ", err)
+				}
+			}
+		}()
+		go func() {
+			logitem := log.WithField("copy direction", "to dev")
+			if _, err := io.Copy(port, os.Stdin); err != nil {
+				logitem.Error("Encountered error: ", err)
+			}
+			// If user sends EOF (CTRL-D)
+			logitem.Println("Closed stdin")
+		}()
+
+		// Wait for sigint
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt)
+		<-sig
 	default:
 		log.Fatalf("Error - Invalid command given")
 	}
