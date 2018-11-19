@@ -63,7 +63,7 @@ func setupFlags() {
 		fmt.Printf("Options:\n")
 		flag.PrintDefaults()
 	}
-	flag.BoolVar(&verbose, "verbose", false, "Toggles the verbose setting")
+	flag.BoolVar(&verbose, "v", false, "Toggles the verbose setting")
 	flag.UintVar(&portSpeed, "speed", SmartRFFlashProgrammer2Speed, "The serial baud rate to use")
 }
 
