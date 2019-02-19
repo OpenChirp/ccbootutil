@@ -46,6 +46,7 @@ var commands = []string{
 	"flash <program.elf>",
 	"verify <program.elf>",
 	"prgm <program.elf> -- sync, erase, flash, verify, and then reset",
+	"console",
 }
 
 var verbose bool
