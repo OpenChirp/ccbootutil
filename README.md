@@ -8,6 +8,3 @@ This is a command line and scriptable interface to the TI CC2538/CC26xx Serial B
 3. Run `ccbootutil -verbose /dev/ttyUSB0 prgm SOME_PROJECT_NAME.out` .
 
 Note: CCS generates the .out ELF file after a successful build of the Debug target.
-
-# Status
-Working!
